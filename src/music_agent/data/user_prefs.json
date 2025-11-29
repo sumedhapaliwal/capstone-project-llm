@@ -1,0 +1,49 @@
+{
+  "liked_songs": [
+    "s1",
+    "s4",
+    "s7",
+    "s10",
+    "s3",
+    "s6",
+    "s9",
+    "s16",
+    "s14",
+    "s17"
+  ],
+  "disliked_songs": [],
+  "preferred_genres": [
+    "pop",
+    "synthwave",
+    "soul",
+    "electropop",
+    "rock",
+    "nu metal",
+    "electronic",
+    "house",
+    "hip hop",
+    "disco",
+    "funk"
+  ],
+  "preferred_moods": [
+    "energetic",
+    "light",
+    "sad",
+    "edgy",
+    "intense",
+    "happy",
+    "chill"
+  ],
+  "preferred_artists": [
+    "The Weeknd",
+    "Ed Sheeran",
+    "Olivia Rodrigo",
+    "Adele",
+    "Billie Eilish",
+    "Linkin Park",
+    "Daft Punk",
+    "Post Malone, Swae Lee",
+    "Daft Punk ft. Pharrell Williams",
+    "Post Malone"
+  ]
+}
