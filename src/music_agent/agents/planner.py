@@ -52,7 +52,6 @@ def parse_intent(nl_query: str) -> Intent:
             
             data: Dict = json.loads(content)
         except json.JSONDecodeError as e:
-            print(f"JSON parse failed, using fallback. Response: {resp.content[:200]}")
             data = {"action": "recommend", "preferences": {"query": nl_query, "size": 10}}
         
         prefs = data.get("preferences", {})

@@ -10,6 +10,7 @@ from src.music_agent.state import UserPreferences, SessionContext
 from src.music_agent.graph import invoke_workflow, build_multi_agent_graph
 from src.music_agent.tools.library import load_default_library
 from src.music_agent.agents.memory import update_user_memory
+from src.music_agent.agents.refiner import refiner_agent, namer_agent
 
 load_dotenv()
 
@@ -29,6 +30,7 @@ def load_saved_playlists():
     return []
 
 def save_playlist_to_file(playlist_data):
+    playlists_file.parent.mkdir(parents=True, exist_ok=True)
     playlists = load_saved_playlists()
     playlists.append(playlist_data)
     with open(playlists_file, "w") as f:
@@ -344,6 +346,12 @@ if "user_prefs" not in st.session_state:
 if "discovery_index" not in st.session_state:
     st.session_state.discovery_index = 0
 
+if "conversation_history" not in st.session_state:
+    st.session_state.conversation_history = []
+
+if "active_refinement" not in st.session_state:
+    st.session_state.active_refinement = False
+
 st.markdown("""
 <div class="app-header">
     <div class="app-title">Music Intelligence</div>
@@ -355,7 +363,7 @@ mistral_key = os.getenv("MISTRAL_API_KEY", "")
 if not mistral_key or mistral_key == "your-mistral-api-key":
     st.warning("Configure MISTRAL_API_KEY in .env file to enable AI features")
 
-tab1, tab2, tab3, tab4 = st.tabs(["Create Playlist", "Discover", "My Music", "Saved Playlists"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["Create Playlist", "Refine Playlist", "Discover", "Saved Playlists", "My Music"])
 
 with tab1:
     st.markdown("<br>", unsafe_allow_html=True)
@@ -410,78 +418,282 @@ with tab1:
                     if result.get("error"):
                         st.error(f"Error: {result['error']}")
                     else:
-                        with st.expander("Agent Activity Log", expanded=False):
-                            for log in result["logs"]:
-                                st.markdown(f"**{log.agent_name}**: {log.details}")
-                        
-                        if result["explanations"]:
-                            st.success(result["explanations"][0])
-                        
                         st.session_state.last_result = result
+                        st.session_state.active_refinement = True
                         
-                        col_save1, col_save2, col_save3 = st.columns([1, 2, 1])
-                        with col_save2:
-                            if st.button("Save This Playlist", use_container_width=True, key="save_current_playlist"):
-                                playlist_data = {
-                                    "title": f"Playlist: {nl_query[:50] if nl_query else 'Custom Playlist'}",
-                                    "description": result["explanations"][0] if result["explanations"] else "",
-                                    "songs": [{
-                                        "id": s.id,
-                                        "name": s.name,
-                                        "artist": s.artist,
-                                        "album": s.album,
-                                        "year": s.year,
-                                        "genres": s.genres
-                                    } for s in result["final_playlist"]],
-                                    "created_at": pd.Timestamp.now().isoformat()
-                                }
-                                save_playlist_to_file(playlist_data)
-                                st.session_state.saved_playlists = load_saved_playlists()
-                                st.success("Playlist saved successfully!")
+                        playlist_title, playlist_desc = namer_agent(result)
+                        st.session_state.playlist_title = playlist_title
+                        st.session_state.playlist_desc = playlist_desc
+                        st.rerun()
                         
-                        st.markdown("<br>", unsafe_allow_html=True)
-                        
-                        for idx, song in enumerate(result["final_playlist"]):
-                            cover = song.cover_url if hasattr(song, 'cover_url') and song.cover_url else "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop"
-                            
-                            with st.container():
-                                st.markdown(f"""
-                                <div class="song-card song-card-clickable">
-                                    <img src="{cover}" class="album-cover" alt="{song.album}">
-                                    <div class="song-info">
-                                        <div class="song-title">{song.name}</div>
-                                        <div class="song-artist">{song.artist}</div>
-                                        <div class="song-meta">{song.album} • {song.year} • {', '.join(song.genres)}</div>
-                                    </div>
-                                </div>
-                                """, unsafe_allow_html=True)
-                            
-                            if st.session_state.get(f"show_modal_{song.id}", False):
-                                with st.container():
-                                    st.markdown("---")
-                                    col_d1, col_d2, col_d3 = st.columns([2, 2, 0.5])
-                                    with col_d1:
-                                        st.metric("Mood", song.mood or "N/A")
-                                        st.metric("Energy", f"{song.energy:.0%}" if song.energy else "N/A")
-                                        st.metric("Danceability", f"{song.danceability:.0%}" if song.danceability else "N/A")
-                                    with col_d2:
-                                        st.metric("Valence", f"{song.valence:.0%}" if song.valence else "N/A")
-                                        st.metric("Popularity", song.popularity or "N/A")
-                                        st.write("**Tags:**", ", ".join(song.tags) if song.tags else "N/A")
-                                    with col_d3:
-                                        if st.button("▲", key=f"collapse_{song.id}"):
-                                            st.session_state[f"show_modal_{song.id}"] = False
-                                            st.rerun()
-                                    st.markdown("---")
-                            else:
-                                if st.button("▼", key=f"expand_{song.id}"):
-                                    st.session_state[f"show_modal_{song.id}"] = True
-                                    st.rerun()
-                
                 except Exception as e:
-                    st.error(f"Error: {e}")
+                    st.error(f"Error: {str(e)}")
+    
+    if st.session_state.get("last_result"):
+        result = st.session_state.last_result
+        
+        with st.expander("Agent Activity Log", expanded=False):
+            for log in result["logs"]:
+                st.markdown(f"**{log.agent_name}**: {log.details}")
+        
+        if result["explanations"]:
+            st.success(result["explanations"][0])
+        
+        playlist_title = st.session_state.get("playlist_title", "Your Playlist")
+        playlist_desc = st.session_state.get("playlist_desc", "")
+        
+        st.markdown(f"### {playlist_title}")
+        st.caption(playlist_desc)
+        
+        col_save1, col_save2, col_save3 = st.columns([1, 2, 1])
+        with col_save2:
+            if st.button("Save This Playlist", use_container_width=True, key="save_current_playlist"):
+                playlist_data = {
+                    "title": playlist_title,
+                    "description": playlist_desc,
+                    "songs": [{
+                        "id": s.id,
+                        "name": s.name,
+                        "artist": s.artist,
+                        "album": s.album,
+                        "year": s.year,
+                        "genres": s.genres
+                    } for s in result["final_playlist"]],
+                    "created_at": pd.Timestamp.now().isoformat()
+                }
+                save_playlist_to_file(playlist_data)
+                st.session_state.saved_playlists = load_saved_playlists()
+                st.success("✓ Playlist saved! Check the 'Saved Playlists' tab.")
+                st.balloons()
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        for idx, song in enumerate(result["final_playlist"]):
+            cover = song.cover_url if hasattr(song, 'cover_url') and song.cover_url else "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop"
+            
+            with st.container():
+                st.markdown(f"""
+                <div class="song-card song-card-clickable">
+                    <img src="{cover}" class="album-cover" alt="{song.album}">
+                    <div class="song-info">
+                        <div class="song-title">{song.name}</div>
+                        <div class="song-artist">{song.artist}</div>
+                        <div class="song-meta">{song.album} • {song.year} • {', '.join(song.genres)}</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            if st.session_state.get(f"show_modal_{song.id}", False):
+                with st.container():
+                    st.markdown("---")
+                    col_d1, col_d2, col_d3 = st.columns([2, 2, 0.5])
+                    with col_d1:
+                        st.metric("Mood", song.mood or "N/A")
+                        st.metric("Energy", f"{song.energy:.0%}" if song.energy else "N/A")
+                        st.metric("Danceability", f"{song.danceability:.0%}" if song.danceability else "N/A")
+                    with col_d2:
+                        st.metric("Valence", f"{song.valence:.0%}" if song.valence else "N/A")
+                        st.metric("Popularity", song.popularity or "N/A")
+                        st.write("**Tags:**", ", ".join(song.tags) if song.tags else "N/A")
+                    with col_d3:
+                        if st.button("▲", key=f"collapse_{song.id}"):
+                            st.session_state[f"show_modal_{song.id}"] = False
+                            st.rerun()
+                    st.markdown("---")
+            else:
+                if st.button("▼", key=f"expand_{song.id}"):
+                    st.session_state[f"show_modal_{song.id}"] = True
+                    st.rerun()
 
 with tab2:
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    if not st.session_state.get("last_result"):
+        st.info("Create a playlist first, then come here to refine it conversationally")
+    else:
+        st.subheader("Conversational Refinement")
+        st.caption("Chat with the system to adjust your playlist")
+        
+        if st.session_state.conversation_history:
+            for msg in st.session_state.conversation_history:
+                if msg["role"] == "user":
+                    st.chat_message("user").write(msg["content"])
+                else:
+                    st.chat_message("assistant").write(msg["content"])
+        
+        user_input = st.chat_input("Tell me how to adjust the playlist...")
+        
+        if user_input:
+            st.session_state.conversation_history.append({"role": "user", "content": user_input})
+            
+            with st.spinner("Analyzing your request..."):
+                result = st.session_state.last_result
+                state, modifications, analysis = refiner_agent(result, user_input)
+                
+                if modifications:
+                    prefs = result["preferences"]
+                    
+                    if "energy_adjustment" in modifications:
+                        if prefs.energy_range:
+                            new_min = max(0, prefs.energy_range[0] + modifications["energy_adjustment"])
+                            new_max = min(1, prefs.energy_range[1] + modifications["energy_adjustment"])
+                            prefs.energy_range = (new_min, new_max)
+                        else:
+                            base = 0.5 + modifications["energy_adjustment"]
+                            prefs.energy_range = (max(0, base - 0.2), min(1, base + 0.2))
+                    
+                    if "novelty_adjustment" in modifications:
+                        prefs.novelty_tolerance = max(0, min(1, prefs.novelty_tolerance + modifications["novelty_adjustment"]))
+                    
+                    refined_result = invoke_workflow(
+                        query=result["query"],
+                        user_id="default_user"
+                    )
+                    
+                    st.session_state.last_result = refined_result
+                    
+                    new_title, new_desc = namer_agent(refined_result)
+                    st.session_state.playlist_title = new_title
+                    st.session_state.playlist_desc = new_desc
+                    
+                    response = f"I've adjusted your playlist! {analysis[:200]}"
+                    st.session_state.conversation_history.append({"role": "assistant", "content": response})
+                    
+                    st.rerun()
+                else:
+                    response = "I understood your request but couldn't determine specific changes. Try being more specific like 'make it more energetic' or 'add calmer songs'."
+                    st.session_state.conversation_history.append({"role": "assistant", "content": response})
+                    st.rerun()
+        
+        if st.session_state.get("last_result"):
+            st.markdown("<br><br>", unsafe_allow_html=True)
+            st.markdown("### Current Playlist")
+            
+            if st.session_state.get("playlist_title"):
+                st.markdown(f"**{st.session_state.playlist_title}**")
+                st.caption(st.session_state.playlist_desc)
+            
+            for song in st.session_state.last_result["final_playlist"][:5]:
+                cover = song.cover_url if hasattr(song, 'cover_url') and song.cover_url else "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop"
+                st.markdown(f"""
+                <div class="song-card">
+                    <img src="{cover}" class="album-cover" alt="{song.album}">
+                    <div class="song-info">
+                        <div class="song-title">{song.name}</div>
+                        <div class="song-artist">{song.artist}</div>
+                        <div class="song-meta">{', '.join(song.genres)} • Energy: {song.energy:.0%}</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            if len(st.session_state.last_result["final_playlist"]) > 5:
+                st.caption(f"+ {len(st.session_state.last_result['final_playlist']) - 5} more songs")
+
+with tab4:
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    saved_playlists = st.session_state.saved_playlists
+    
+    st.subheader(f"Your Saved Playlists ({len(saved_playlists)})")
+    
+    if not saved_playlists:
+        st.info("No saved playlists yet. Create a playlist and save it to see it here!")
+    else:
+        for idx, pl_data in enumerate(reversed(saved_playlists)):
+            with st.expander(f"{pl_data['title']} - {len(pl_data['songs'])} songs", expanded=False):
+                if pl_data.get("description"):
+                    st.write(pl_data["description"])
+                
+                st.caption(f"Created: {pd.Timestamp(pl_data['created_at']).strftime('%B %d, %Y at %I:%M %p')}")
+                
+                st.markdown("<br>", unsafe_allow_html=True)
+                
+                for song_data in pl_data["songs"]:
+                    full_song = next((s for s in lib.songs if s.id == song_data['id']), None)
+                    cover = full_song.cover_url if full_song and hasattr(full_song, 'cover_url') and full_song.cover_url else "https://via.placeholder.com/80x80/1a1a2e/8b5cf6?text=No+Cover"
+                    st.markdown(f"""
+                    <div class="song-card">
+                        <img src="{cover}" class="album-cover" alt="{song_data['album']}">
+                        <div class="song-info">
+                            <div class="song-title">{song_data['name']}</div>
+                            <div class="song-artist">{song_data['artist']}</div>
+                            <div class="song-meta">{song_data['album']} • {song_data['year']} • {', '.join(song_data['genres'])}</div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                if st.button(f"Delete Playlist", key=f"saved_delete_playlist_{idx}"):
+                    saved_playlists.pop(len(saved_playlists) - 1 - idx)
+                    with open(playlists_file, "w") as f:
+                        json.dump(saved_playlists, f, indent=2)
+                    st.session_state.saved_playlists = saved_playlists
+                    st.rerun()
+
+with tab5:
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    user_prefs = st.session_state.user_prefs
+    liked_songs = [s for s in lib.songs if s.id in user_prefs["liked_songs"]]
+    
+    st.subheader(f"Liked Songs ({len(liked_songs)})")
+    
+    if not liked_songs:
+        st.info("No liked songs yet. Visit the Discover tab to find music you love!")
+    else:
+        for idx, song in enumerate(liked_songs):
+            cover = song.cover_url if hasattr(song, 'cover_url') and song.cover_url else "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop"
+            
+            with st.container():
+                st.markdown(f"""
+                <div class="song-card song-card-clickable">
+                    <img src="{cover}" class="album-cover" alt="{song.album}">
+                    <div class="song-info">
+                        <div class="song-title">{song.name}</div>
+                        <div class="song-artist">{song.artist}</div>
+                        <div class="song-meta">
+                            {song.album} • {song.year} • {', '.join(song.genres)}
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            if st.session_state.get(f"show_mymusic_modal_{song.id}", False):
+                with st.container():
+                    st.markdown("---")
+                    col_d1, col_d2, col_d3 = st.columns([2, 2, 0.5])
+                    with col_d1:
+                        st.metric("Mood", song.mood or "N/A")
+                        st.metric("Energy", f"{song.energy:.0%}" if song.energy else "N/A")
+                        st.metric("Danceability", f"{song.danceability:.0%}" if song.danceability else "N/A")
+                    with col_d2:
+                        st.metric("Valence", f"{song.valence:.0%}" if song.valence else "N/A")
+                        st.metric("Popularity", song.popularity or "N/A")
+                        st.write("**Tags:**", ", ".join(song.tags) if song.tags else "N/A")
+                    with col_d3:
+                        if st.button("▲", key=f"mymusic_collapse_{song.id}"):
+                            st.session_state[f"show_mymusic_modal_{song.id}"] = False
+                            st.rerun()
+                    st.markdown("---")
+            else:
+                if st.button("▼", key=f"mymusic_expand_{song.id}"):
+                    st.session_state[f"show_mymusic_modal_{song.id}"] = True
+                    st.rerun()
+    
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    
+    if user_prefs["preferred_genres"] or user_prefs["preferred_moods"]:
+        st.subheader("Your Preferences")
+        
+        if user_prefs["preferred_genres"]:
+            st.write("**Favorite Genres:**", ", ".join(user_prefs["preferred_genres"][:5]))
+        
+        if user_prefs["preferred_moods"]:
+            st.write("**Favorite Moods:**", ", ".join(user_prefs["preferred_moods"][:5]))
+        
+        if user_prefs["preferred_artists"]:
+            st.write("**Favorite Artists:**", ", ".join(user_prefs["preferred_artists"][:5]))
+
+with tab3:
     st.markdown("<br>", unsafe_allow_html=True)
     
     if "discovery_mode" not in st.session_state:
@@ -562,107 +774,3 @@ with tab2:
                 st.session_state.user_prefs = load_user_prefs()
                 st.session_state.discovery_index += 1
                 st.rerun()
-
-with tab3:
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    user_prefs = st.session_state.user_prefs
-    liked_songs = [s for s in lib.songs if s.id in user_prefs["liked_songs"]]
-    
-    st.subheader(f"Liked Songs ({len(liked_songs)})")
-    
-    if not liked_songs:
-        st.info("No liked songs yet. Visit the Discover tab to find music you love!")
-    else:
-        for idx, song in enumerate(liked_songs):
-            cover = song.cover_url if hasattr(song, 'cover_url') and song.cover_url else "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop"
-            
-            with st.container():
-                st.markdown(f"""
-                <div class="song-card song-card-clickable">
-                    <img src="{cover}" class="album-cover" alt="{song.album}">
-                    <div class="song-info">
-                        <div class="song-title">{song.name}</div>
-                        <div class="song-artist">{song.artist}</div>
-                        <div class="song-meta">
-                            {song.album} • {song.year} • {', '.join(song.genres)}
-                        </div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            if st.session_state.get(f"show_liked_modal_{song.id}", False):
-                with st.container():
-                    st.markdown("---")
-                    col_d1, col_d2, col_d3 = st.columns([2, 2, 0.5])
-                    with col_d1:
-                        st.metric("Mood", song.mood or "N/A")
-                        st.metric("Energy", f"{song.energy:.0%}" if song.energy else "N/A")
-                        st.metric("Danceability", f"{song.danceability:.0%}" if song.danceability else "N/A")
-                    with col_d2:
-                        st.metric("Valence", f"{song.valence:.0%}" if song.valence else "N/A")
-                        st.metric("Popularity", song.popularity or "N/A")
-                        st.write("**Tags:**", ", ".join(song.tags) if song.tags else "N/A")
-                    with col_d3:
-                        if st.button("▲", key=f"collapse_liked_{song.id}"):
-                            st.session_state[f"show_liked_modal_{song.id}"] = False
-                            st.rerun()
-                    st.markdown("---")
-            else:
-                if st.button("▼", key=f"expand_liked_{song.id}"):
-                    st.session_state[f"show_liked_modal_{song.id}"] = True
-                    st.rerun()
-    
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    
-    if user_prefs["preferred_genres"] or user_prefs["preferred_moods"]:
-        st.subheader("Your Preferences")
-        
-        if user_prefs["preferred_genres"]:
-            st.write("**Favorite Genres:**", ", ".join(user_prefs["preferred_genres"][:5]))
-        
-        if user_prefs["preferred_moods"]:
-            st.write("**Favorite Moods:**", ", ".join(user_prefs["preferred_moods"][:5]))
-        
-        if user_prefs["preferred_artists"]:
-            st.write("**Favorite Artists:**", ", ".join(user_prefs["preferred_artists"][:5]))
-
-with tab4:
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    saved_playlists = st.session_state.saved_playlists
-    
-    st.subheader(f"Your Saved Playlists ({len(saved_playlists)})")
-    
-    if not saved_playlists:
-        st.info("No saved playlists yet. Create a playlist and save it to see it here!")
-    else:
-        for idx, pl_data in enumerate(reversed(saved_playlists)):
-            with st.expander(f"{pl_data['title']} - {len(pl_data['songs'])} songs", expanded=False):
-                if pl_data.get("description"):
-                    st.write(pl_data["description"])
-                
-                st.caption(f"Created: {pd.Timestamp(pl_data['created_at']).strftime('%B %d, %Y at %I:%M %p')}")
-                
-                st.markdown("<br>", unsafe_allow_html=True)
-                
-                for song_data in pl_data["songs"]:
-                    full_song = next((s for s in lib.songs if s.id == song_data['id']), None)
-                    cover = full_song.cover_url if full_song and hasattr(full_song, 'cover_url') and full_song.cover_url else "https://via.placeholder.com/80x80/1a1a2e/8b5cf6?text=No+Cover"
-                    st.markdown(f"""
-                    <div class="song-card">
-                        <img src="{cover}" class="album-cover" alt="{song_data['album']}">
-                        <div class="song-info">
-                            <div class="song-title">{song_data['name']}</div>
-                            <div class="song-artist">{song_data['artist']}</div>
-                            <div class="song-meta">{song_data['album']} • {song_data['year']} • {', '.join(song_data['genres'])}</div>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                if st.button(f"Delete Playlist", key=f"delete_playlist_{idx}"):
-                    saved_playlists.pop(len(saved_playlists) - 1 - idx)
-                    with open(playlists_file, "w") as f:
-                        json.dump(saved_playlists, f, indent=2)
-                    st.session_state.saved_playlists = saved_playlists
-                    st.rerun()

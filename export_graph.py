@@ -276,8 +276,3 @@ workflow_structure = {
 
 with open(output_dir / "workflow_structure.json", "w") as f:
     json.dump(workflow_structure, f, indent=2)
-
-print("✅ Graph visualization exported to output/")
-print("  - architecture.md (Mermaid diagram + documentation)")
-print("  - agents_metadata.json")
-print("  - workflow_structure.json")
