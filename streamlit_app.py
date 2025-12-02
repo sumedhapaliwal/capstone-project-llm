@@ -6,20 +6,20 @@ import streamlit as st
 import pandas as pd
 from dotenv import load_dotenv
 
-from src.music_agent.state import UserPreferences
-from src.music_agent.graph import build_graph
+from src.music_agent.state import UserPreferences, SessionContext
+from src.music_agent.graph import invoke_workflow, build_multi_agent_graph
 from src.music_agent.tools.library import load_default_library
+from src.music_agent.agents.memory import update_user_memory
 
 load_dotenv()
 
 st.set_page_config(
     page_title="Music Intelligence",
-    page_icon="🎵",
+    page_icon="♫",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# playlists storage
 playlists_file = Path("src/music_agent/data/saved_playlists.json")
 
 def load_saved_playlists():
@@ -344,7 +344,6 @@ if "user_prefs" not in st.session_state:
 if "discovery_index" not in st.session_state:
     st.session_state.discovery_index = 0
 
-# Header
 st.markdown("""
 <div class="app-header">
     <div class="app-title">Music Intelligence</div>
@@ -352,15 +351,12 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# API Key check
 mistral_key = os.getenv("MISTRAL_API_KEY", "")
 if not mistral_key or mistral_key == "your-mistral-api-key":
     st.warning("Configure MISTRAL_API_KEY in .env file to enable AI features")
 
-# Tabs
 tab1, tab2, tab3, tab4 = st.tabs(["Create Playlist", "Discover", "My Music", "Saved Playlists"])
 
-# TAB 1: Create Playlist
 with tab1:
     st.markdown("<br>", unsafe_allow_html=True)
     
@@ -404,55 +400,31 @@ with tab1:
         if not mistral_key or mistral_key == "your-mistral-api-key":
             st.error("Configure MISTRAL_API_KEY to use AI features")
         else:
-            with st.spinner("Creating your playlist..."):
+            with st.spinner("Multi-agent system generating playlist..."):
                 try:
-                    # Build enhanced prompt with user preferences
-                    user_prefs = st.session_state.user_prefs
-                    enhanced_query = nl_query or "recommend songs"
-                    
-                    if user_prefs["liked_songs"]:
-                        liked_ids = user_prefs["liked_songs"][:5]
-                        liked_songs = [s for s in lib.songs if s.id in liked_ids]
-                        if liked_songs:
-                            enhanced_query += f". User previously liked: {', '.join([s.name for s in liked_songs])}"
-                    
-                    if user_prefs["preferred_genres"]:
-                        enhanced_query += f". Preferred genres: {', '.join(user_prefs['preferred_genres'][:3])}"
-                    
-                    app, _ = build_graph()
-                    initial = {
-                        "preferences": UserPreferences(
-                            query=enhanced_query,
-                            genres=genres,
-                            tags=tags,
-                            moods=moods,
-                            size=size,
-                        ),
-                        "library": [],
-                        "candidate_songs": [],
-                        "playlist": None,
-                        "last_action": None,
-                        "error": None,
-                    }
-                    
-                    result = app.invoke(initial)
+                    result = invoke_workflow(
+                        query=nl_query or "recommend me some songs",
+                        user_id="default_user"
+                    )
                     
                     if result.get("error"):
                         st.error(f"Error: {result['error']}")
                     else:
-                        pl = result["playlist"]
-                        st.success(f"{pl.title}")
+                        with st.expander("Agent Activity Log", expanded=False):
+                            for log in result["logs"]:
+                                st.markdown(f"**{log.agent_name}**: {log.details}")
                         
-                        if pl.description:
-                            st.info(pl.description)
+                        if result["explanations"]:
+                            st.success(result["explanations"][0])
                         
-                        # Save playlist button
+                        st.session_state.last_result = result
+                        
                         col_save1, col_save2, col_save3 = st.columns([1, 2, 1])
                         with col_save2:
                             if st.button("Save This Playlist", use_container_width=True, key="save_current_playlist"):
                                 playlist_data = {
-                                    "title": pl.title,
-                                    "description": pl.description,
+                                    "title": f"Playlist: {nl_query[:50] if nl_query else 'Custom Playlist'}",
+                                    "description": result["explanations"][0] if result["explanations"] else "",
                                     "songs": [{
                                         "id": s.id,
                                         "name": s.name,
@@ -460,7 +432,7 @@ with tab1:
                                         "album": s.album,
                                         "year": s.year,
                                         "genres": s.genres
-                                    } for s in pl.songs],
+                                    } for s in result["final_playlist"]],
                                     "created_at": pd.Timestamp.now().isoformat()
                                 }
                                 save_playlist_to_file(playlist_data)
@@ -469,7 +441,7 @@ with tab1:
                         
                         st.markdown("<br>", unsafe_allow_html=True)
                         
-                        for idx, song in enumerate(pl.songs):
+                        for idx, song in enumerate(result["final_playlist"]):
                             cover = song.cover_url if hasattr(song, 'cover_url') and song.cover_url else "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop"
                             
                             with st.container():
@@ -586,14 +558,8 @@ with tab2:
         with col3:
             if st.button("Like", key="like_main", use_container_width=True):
                 user_prefs["liked_songs"].append(song.id)
-                for g in song.genres:
-                    if g not in user_prefs["preferred_genres"]:
-                        user_prefs["preferred_genres"].append(g)
-                if song.mood and song.mood not in user_prefs["preferred_moods"]:
-                    user_prefs["preferred_moods"].append(song.mood)
-                if song.artist not in user_prefs["preferred_artists"]:
-                    user_prefs["preferred_artists"].append(song.artist)
-                save_user_prefs(user_prefs)
+                update_user_memory("default_user", {"liked_song": song.model_dump()})
+                st.session_state.user_prefs = load_user_prefs()
                 st.session_state.discovery_index += 1
                 st.rerun()
 

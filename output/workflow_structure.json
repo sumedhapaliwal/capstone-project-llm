@@ -1,0 +1,77 @@
+{
+  "nodes": [
+    "initialize",
+    "orchestrator",
+    "memory",
+    "recommenders (parallel: taste + explorer)",
+    "safety",
+    "critic",
+    "explainer",
+    "done"
+  ],
+  "edges": [
+    {
+      "from": "initialize",
+      "to": "orchestrator"
+    },
+    {
+      "from": "orchestrator",
+      "to": "memory",
+      "condition": "no error"
+    },
+    {
+      "from": "memory",
+      "to": "recommenders"
+    },
+    {
+      "from": "recommenders",
+      "to": "safety"
+    },
+    {
+      "from": "safety",
+      "to": "critic",
+      "condition": "no human review needed"
+    },
+    {
+      "from": "safety",
+      "to": "human_review",
+      "condition": "review required"
+    },
+    {
+      "from": "human_review",
+      "to": "critic"
+    },
+    {
+      "from": "critic",
+      "to": "explainer"
+    },
+    {
+      "from": "explainer",
+      "to": "done"
+    },
+    {
+      "from": "done",
+      "to": "END"
+    }
+  ],
+  "parallel_branches": [
+    [
+      "taste_recommender",
+      "explorer"
+    ]
+  ],
+  "conditional_routing": [
+    {
+      "node": "orchestrator",
+      "conditions": [
+        "error_check"
+      ]
+    },
+    {
+      "node": "safety",
+      "conditions": [
+        "human_review_check"
+      ]
+    }
+  ]
+}

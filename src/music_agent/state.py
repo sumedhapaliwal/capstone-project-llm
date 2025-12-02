@@ -1,5 +1,6 @@
-from typing import List, Optional, Literal, TypedDict
-from pydantic import BaseModel, Field
+from typing import List, Optional, Literal, TypedDict, Annotated, Any
+from pydantic import BaseModel, Field, ConfigDict, field_validator
+import operator
 
 
 class Song(BaseModel):
@@ -18,6 +19,14 @@ class Song(BaseModel):
     valence: Optional[float] = None
     popularity: Optional[int] = None
     cover_url: Optional[str] = None
+    
+    def __eq__(self, other):
+        if not isinstance(other, Song):
+            return False
+        return self.id == other.id
+    
+    def __hash__(self):
+        return hash(self.id)
 
 
 class UserPreferences(BaseModel):
@@ -31,6 +40,33 @@ class UserPreferences(BaseModel):
     energy_range: Optional[tuple[float, float]] = None
     danceability_range: Optional[tuple[float, float]] = None
     size: int = 10
+    explicit_filter: bool = False
+    language_prefs: List[str] = Field(default_factory=list)
+    novelty_tolerance: float = 0.3
+
+
+class CandidateTrack(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True, validate_assignment=False)
+    
+    song: Any
+    score: float
+    source_agent: str
+    reason: str
+    novelty_score: float = 0.0
+    confidence: float = 1.0
+
+
+class SessionContext(BaseModel):
+    activity: Optional[str] = None
+    duration_minutes: Optional[int] = None
+    mood: Optional[str] = None
+    time_of_day: Optional[str] = None
+
+
+class AgentLog(BaseModel):
+    agent_name: str
+    action: str
+    details: str
 
 
 class Playlist(BaseModel):
@@ -39,17 +75,24 @@ class Playlist(BaseModel):
     songs: List[Song] = Field(default_factory=list)
 
 
-class AgentState(TypedDict):
+class AppState(TypedDict):
+    user_id: str
+    query: str
+    intent: str
     preferences: UserPreferences
+    session_context: SessionContext
+    candidate_tracks: Annotated[List[CandidateTrack], operator.add]
+    final_playlist: List[Song]
+    explanations: Annotated[List[str], operator.add]
+    logs: Annotated[List[AgentLog], operator.add]
     library: List[Song]
-    candidate_songs: List[Song]
-    playlist: Optional[Playlist]
-    last_action: Optional[str]
     error: Optional[str]
+    requires_human_review: bool
+    feedback: Optional[dict]
 
 
 class Intent(BaseModel):
     action: Literal[
-        "search", "recommend", "playlist_create", "playlist_expand", "analyze"
+        "search", "recommend", "playlist_create", "playlist_expand", "analyze", "explain", "update_prefs"
     ]
     preferences: UserPreferences

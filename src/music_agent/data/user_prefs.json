@@ -9,9 +9,13 @@
     "s9",
     "s16",
     "s14",
-    "s17"
+    "s17",
+    "s12",
+    "s15"
   ],
-  "disliked_songs": [],
+  "disliked_songs": [
+    "s20"
+  ],
   "preferred_genres": [
     "pop",
     "synthwave",
@@ -23,7 +27,9 @@
     "house",
     "hip hop",
     "disco",
-    "funk"
+    "funk",
+    "grunge",
+    "alternative"
   ],
   "preferred_moods": [
     "energetic",
@@ -32,7 +38,9 @@
     "edgy",
     "intense",
     "happy",
-    "chill"
+    "chill",
+    "rebellious",
+    "hopeful"
   ],
   "preferred_artists": [
     "The Weeknd",
@@ -44,6 +52,8 @@
     "Daft Punk",
     "Post Malone, Swae Lee",
     "Daft Punk ft. Pharrell Williams",
-    "Post Malone"
+    "Post Malone",
+    "Nirvana",
+    "Coldplay"
   ]
 }

@@ -1,0 +1,66 @@
+{
+  "orchestrator": {
+    "emoji": "\ud83e\uddd1\u200d\u2708\ufe0f",
+    "name": "Orchestrator",
+    "role": "System brain",
+    "input": "User natural language query",
+    "output": "Structured intent + session context",
+    "uses_llm": true
+  },
+  "memory": {
+    "emoji": "\ud83e\uddec",
+    "name": "Memory Agent",
+    "role": "Persistent state manager",
+    "input": "User ID",
+    "output": "Long-term taste profile",
+    "uses_llm": false
+  },
+  "taste_recommender": {
+    "emoji": "\ud83c\udfaf",
+    "name": "Taste DJ",
+    "role": "Familiar recommendations",
+    "input": "User preferences + library",
+    "output": "Ranked familiar tracks (~70%)",
+    "uses_llm": false
+  },
+  "explorer": {
+    "emoji": "\ud83e\uddea",
+    "name": "Chaos DJ",
+    "role": "Novel discoveries",
+    "input": "User profile + library",
+    "output": "High-novelty tracks (~30%)",
+    "uses_llm": false
+  },
+  "safety": {
+    "emoji": "\ud83d\udee1\ufe0f",
+    "name": "Safety Agent",
+    "role": "Content policy enforcement",
+    "input": "Candidate tracks + rules",
+    "output": "Filtered tracks + logs",
+    "uses_llm": false
+  },
+  "critic": {
+    "emoji": "\ud83e\uddd1\u200d\u2696\ufe0f",
+    "name": "Critic",
+    "role": "Multi-objective curator",
+    "input": "All candidates + context",
+    "output": "Final ranked playlist",
+    "uses_llm": false
+  },
+  "explainer": {
+    "emoji": "\ud83c\udf08",
+    "name": "Storyteller",
+    "role": "Human-friendly explanations",
+    "input": "Playlist + agent logs",
+    "output": "Engaging summary",
+    "uses_llm": true
+  },
+  "feedback": {
+    "emoji": "\ud83d\udcca",
+    "name": "Feedback Agent",
+    "role": "Learning & adaptation",
+    "input": "User actions (like/dislike)",
+    "output": "Updated user profile",
+    "uses_llm": false
+  }
+}
