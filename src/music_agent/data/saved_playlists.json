@@ -113,5 +113,469 @@
       }
     ],
     "created_at": "2025-12-02T20:14:13.437968"
+  },
+  {
+    "title": "Dance Fever Delight",
+    "description": "A non-stop dance party hits your playlist with iconic pop hits from Britney Spears, Bruno Mars, Michael Jackson, Adele, and Taylor Swift. Perfect for energizing any moment! \ud83d\udc83\ud83d\udd7a\ud83c\udf1f\ud83c\udfb6",
+    "songs": [
+      {
+        "id": "s56",
+        "name": "...Baby One More Time",
+        "artist": "Britney Spears",
+        "album": "...Baby One More Time",
+        "year": 1998,
+        "genres": [
+          "pop"
+        ]
+      },
+      {
+        "id": "s11",
+        "name": "Uptown Funk",
+        "artist": "Mark Ronson ft. Bruno Mars",
+        "album": "Uptown Special",
+        "year": 2014,
+        "genres": [
+          "funk",
+          "pop"
+        ]
+      },
+      {
+        "id": "s26",
+        "name": "Billie Jean",
+        "artist": "Michael Jackson",
+        "album": "Thriller",
+        "year": 1982,
+        "genres": [
+          "pop",
+          "funk"
+        ]
+      },
+      {
+        "id": "s29",
+        "name": "Rolling in the Deep",
+        "artist": "Adele",
+        "album": "21",
+        "year": 2010,
+        "genres": [
+          "pop",
+          "soul"
+        ]
+      },
+      {
+        "id": "s114",
+        "name": "Blank Space",
+        "artist": "Taylor Swift",
+        "album": "1989",
+        "year": 2014,
+        "genres": [
+          "pop"
+        ]
+      },
+      {
+        "id": "s18",
+        "name": "Starboy",
+        "artist": "The Weeknd ft. Daft Punk",
+        "album": "Starboy",
+        "year": 2016,
+        "genres": [
+          "pop",
+          "r&b"
+        ]
+      },
+      {
+        "id": "s80",
+        "name": "Time to Dance",
+        "artist": "The Sounds",
+        "album": "Living in America",
+        "year": 2002,
+        "genres": [
+          "rock",
+          "garage rock"
+        ]
+      },
+      {
+        "id": "s138",
+        "name": "Sunset Boulevard",
+        "artist": "Harry Styles",
+        "album": "Live from",
+        "year": 2023,
+        "genres": [
+          "synthpop",
+          "dance-pop"
+        ]
+      },
+      {
+        "id": "s139",
+        "name": "Perfect Storm",
+        "artist": "Justin Timberlake",
+        "album": "The Collection",
+        "year": 2017,
+        "genres": [
+          "dance-pop",
+          "synthpop"
+        ]
+      },
+      {
+        "id": "s142",
+        "name": "Hell Bent",
+        "artist": "Foo Fighters",
+        "album": "Anthology",
+        "year": 2024,
+        "genres": [
+          "indie rock",
+          "alternative rock"
+        ]
+      }
+    ],
+    "created_at": "2025-12-02T21:00:18.577057"
+  },
+  {
+    "title": "Dance Fever Delight",
+    "description": "A non-stop dance party hits your playlist with iconic pop hits from Britney Spears, Bruno Mars, Michael Jackson, Adele, and Taylor Swift. Perfect for energizing any moment! \ud83d\udc83\ud83d\udd7a\ud83c\udf1f\ud83c\udfb6",
+    "songs": [
+      {
+        "id": "s56",
+        "name": "...Baby One More Time",
+        "artist": "Britney Spears",
+        "album": "...Baby One More Time",
+        "year": 1998,
+        "genres": [
+          "pop"
+        ]
+      },
+      {
+        "id": "s11",
+        "name": "Uptown Funk",
+        "artist": "Mark Ronson ft. Bruno Mars",
+        "album": "Uptown Special",
+        "year": 2014,
+        "genres": [
+          "funk",
+          "pop"
+        ]
+      },
+      {
+        "id": "s26",
+        "name": "Billie Jean",
+        "artist": "Michael Jackson",
+        "album": "Thriller",
+        "year": 1982,
+        "genres": [
+          "pop",
+          "funk"
+        ]
+      },
+      {
+        "id": "s29",
+        "name": "Rolling in the Deep",
+        "artist": "Adele",
+        "album": "21",
+        "year": 2010,
+        "genres": [
+          "pop",
+          "soul"
+        ]
+      },
+      {
+        "id": "s114",
+        "name": "Blank Space",
+        "artist": "Taylor Swift",
+        "album": "1989",
+        "year": 2014,
+        "genres": [
+          "pop"
+        ]
+      },
+      {
+        "id": "s18",
+        "name": "Starboy",
+        "artist": "The Weeknd ft. Daft Punk",
+        "album": "Starboy",
+        "year": 2016,
+        "genres": [
+          "pop",
+          "r&b"
+        ]
+      },
+      {
+        "id": "s80",
+        "name": "Time to Dance",
+        "artist": "The Sounds",
+        "album": "Living in America",
+        "year": 2002,
+        "genres": [
+          "rock",
+          "garage rock"
+        ]
+      },
+      {
+        "id": "s138",
+        "name": "Sunset Boulevard",
+        "artist": "Harry Styles",
+        "album": "Live from",
+        "year": 2023,
+        "genres": [
+          "synthpop",
+          "dance-pop"
+        ]
+      },
+      {
+        "id": "s139",
+        "name": "Perfect Storm",
+        "artist": "Justin Timberlake",
+        "album": "The Collection",
+        "year": 2017,
+        "genres": [
+          "dance-pop",
+          "synthpop"
+        ]
+      },
+      {
+        "id": "s142",
+        "name": "Hell Bent",
+        "artist": "Foo Fighters",
+        "album": "Anthology",
+        "year": 2024,
+        "genres": [
+          "indie rock",
+          "alternative rock"
+        ]
+      }
+    ],
+    "created_at": "2025-12-02T21:46:26.425196"
+  },
+  {
+    "title": "Rock Rebellion 2K21: Timeless Anthems for Unforgettable Nights",
+    "description": "Experience the raw power and passion of some of the most iconic rock tracks of all time in this playlist. From the electrifying guitar riffs of Seven Nation Army to the haunting melodies of Bring Me to Life, this collection is guaranteed to ignite your spirit and keep you rocking all night long. Share with friends and enjoy the ride!",
+    "songs": [
+      {
+        "id": "s60",
+        "name": "Seven Nation Army",
+        "artist": "The White Stripes",
+        "album": "Elephant",
+        "year": 2003,
+        "genres": [
+          "rock",
+          "garage rock"
+        ]
+      },
+      {
+        "id": "s77",
+        "name": "Bring Me to Life",
+        "artist": "Evanescence",
+        "album": "Fallen",
+        "year": 2003,
+        "genres": [
+          "alternative",
+          "gothic"
+        ]
+      },
+      {
+        "id": "s23",
+        "name": "Sweet Child O' Mine",
+        "artist": "Guns N' Roses",
+        "album": "Appetite for Destruction",
+        "year": 1987,
+        "genres": [
+          "rock",
+          "hard rock"
+        ]
+      },
+      {
+        "id": "s6",
+        "name": "Numb",
+        "artist": "Linkin Park",
+        "album": "Meteora",
+        "year": 2003,
+        "genres": [
+          "rock",
+          "nu metal"
+        ]
+      },
+      {
+        "id": "s64",
+        "name": "Alive",
+        "artist": "Pearl Jam",
+        "album": "Ten",
+        "year": 1991,
+        "genres": [
+          "grunge",
+          "alternative"
+        ]
+      },
+      {
+        "id": "s70",
+        "name": "The Sound of Silence",
+        "artist": "Disturbed",
+        "album": "Immortalized",
+        "year": 2015,
+        "genres": [
+          "metal",
+          "cover"
+        ]
+      },
+      {
+        "id": "s80",
+        "name": "Time to Dance",
+        "artist": "The Sounds",
+        "album": "Living in America",
+        "year": 2002,
+        "genres": [
+          "rock",
+          "garage rock"
+        ]
+      },
+      {
+        "id": "s131",
+        "name": "Bronze Medal",
+        "artist": "Selena Gomez",
+        "album": "Revisited",
+        "year": 2017,
+        "genres": [
+          "electropop",
+          "synthpop"
+        ]
+      },
+      {
+        "id": "s137",
+        "name": "Dancing Shadows",
+        "artist": "Ariana Grande",
+        "album": "Diaries",
+        "year": 2021,
+        "genres": [
+          "dance-pop",
+          "electropop"
+        ]
+      },
+      {
+        "id": "s138",
+        "name": "Sunset Boulevard",
+        "artist": "Harry Styles",
+        "album": "Live from",
+        "year": 2023,
+        "genres": [
+          "synthpop",
+          "dance-pop"
+        ]
+      }
+    ],
+    "created_at": "2025-12-02T21:46:58.972942"
+  },
+  {
+    "title": "Rock Rebellion 2K21: Timeless Anthems for Unforgettable Nights",
+    "description": "Experience the raw power and passion of some of the most iconic rock tracks of all time in this playlist. From the electrifying guitar riffs of Seven Nation Army to the haunting melodies of Bring Me to Life, this collection is guaranteed to ignite your spirit and keep you rocking all night long. Share with friends and enjoy the ride!",
+    "songs": [
+      {
+        "id": "s60",
+        "name": "Seven Nation Army",
+        "artist": "The White Stripes",
+        "album": "Elephant",
+        "year": 2003,
+        "genres": [
+          "rock",
+          "garage rock"
+        ]
+      },
+      {
+        "id": "s77",
+        "name": "Bring Me to Life",
+        "artist": "Evanescence",
+        "album": "Fallen",
+        "year": 2003,
+        "genres": [
+          "alternative",
+          "gothic"
+        ]
+      },
+      {
+        "id": "s23",
+        "name": "Sweet Child O' Mine",
+        "artist": "Guns N' Roses",
+        "album": "Appetite for Destruction",
+        "year": 1987,
+        "genres": [
+          "rock",
+          "hard rock"
+        ]
+      },
+      {
+        "id": "s6",
+        "name": "Numb",
+        "artist": "Linkin Park",
+        "album": "Meteora",
+        "year": 2003,
+        "genres": [
+          "rock",
+          "nu metal"
+        ]
+      },
+      {
+        "id": "s64",
+        "name": "Alive",
+        "artist": "Pearl Jam",
+        "album": "Ten",
+        "year": 1991,
+        "genres": [
+          "grunge",
+          "alternative"
+        ]
+      },
+      {
+        "id": "s70",
+        "name": "The Sound of Silence",
+        "artist": "Disturbed",
+        "album": "Immortalized",
+        "year": 2015,
+        "genres": [
+          "metal",
+          "cover"
+        ]
+      },
+      {
+        "id": "s80",
+        "name": "Time to Dance",
+        "artist": "The Sounds",
+        "album": "Living in America",
+        "year": 2002,
+        "genres": [
+          "rock",
+          "garage rock"
+        ]
+      },
+      {
+        "id": "s131",
+        "name": "Bronze Medal",
+        "artist": "Selena Gomez",
+        "album": "Revisited",
+        "year": 2017,
+        "genres": [
+          "electropop",
+          "synthpop"
+        ]
+      },
+      {
+        "id": "s137",
+        "name": "Dancing Shadows",
+        "artist": "Ariana Grande",
+        "album": "Diaries",
+        "year": 2021,
+        "genres": [
+          "dance-pop",
+          "electropop"
+        ]
+      },
+      {
+        "id": "s138",
+        "name": "Sunset Boulevard",
+        "artist": "Harry Styles",
+        "album": "Live from",
+        "year": 2023,
+        "genres": [
+          "synthpop",
+          "dance-pop"
+        ]
+      }
+    ],
+    "created_at": "2025-12-02T21:51:59.674051"
   }
 ]

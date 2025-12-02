@@ -92,7 +92,9 @@ def namer_agent(state: AppState) -> tuple[str, str]:
     if len(state["final_playlist"]) > 5:
         songs_summary += f" and {len(state['final_playlist']) - 5} more"
     
-    mood = state["session_context"].mood or "varied"
+    mood = "varied"
+    if state.get("session_context") and hasattr(state["session_context"], "mood"):
+        mood = state["session_context"].mood or "varied"
     
     prompt_template = PromptTemplate.from_template(
         """Create an awesome playlist title and description:

@@ -508,86 +508,260 @@ with tab1:
 with tab2:
     st.markdown("<br>", unsafe_allow_html=True)
     
-    if not st.session_state.get("last_result"):
-        st.info("Create a playlist first, then come here to refine it conversationally")
-    else:
-        st.subheader("Conversational Refinement")
-        st.caption("Chat with the system to adjust your playlist")
+    if not st.session_state.get("last_result") and len(st.session_state.saved_playlists) > 0:
+        st.subheader("Load a Saved Playlist to Refine")
+        st.caption("Select a playlist from your saved collection")
         
-        if st.session_state.conversation_history:
-            for msg in st.session_state.conversation_history:
-                if msg["role"] == "user":
-                    st.chat_message("user").write(msg["content"])
-                else:
-                    st.chat_message("assistant").write(msg["content"])
+        saved_playlists = st.session_state.saved_playlists
         
-        user_input = st.chat_input("Tell me how to adjust the playlist...")
-        
-        if user_input:
-            st.session_state.conversation_history.append({"role": "user", "content": user_input})
-            
-            with st.spinner("Analyzing your request..."):
-                result = st.session_state.last_result
-                state, modifications, analysis = refiner_agent(result, user_input)
+        for idx, pl_data in enumerate(reversed(saved_playlists)):
+            with st.expander(f"{pl_data['title']} - {len(pl_data['songs'])} songs", expanded=False):
+                st.caption(f"Created: {pd.Timestamp(pl_data['created_at']).strftime('%B %d, %Y at %I:%M %p')}")
+                if pl_data.get("description"):
+                    st.write(pl_data["description"])
                 
-                if modifications:
-                    prefs = result["preferences"]
+                if st.button("Load This Playlist for Refinement", key=f"load_for_refine_{idx}"):
+                    from src.music_agent.state import Song
                     
-                    if "energy_adjustment" in modifications:
-                        if prefs.energy_range:
-                            new_min = max(0, prefs.energy_range[0] + modifications["energy_adjustment"])
-                            new_max = min(1, prefs.energy_range[1] + modifications["energy_adjustment"])
-                            prefs.energy_range = (new_min, new_max)
-                        else:
-                            base = 0.5 + modifications["energy_adjustment"]
-                            prefs.energy_range = (max(0, base - 0.2), min(1, base + 0.2))
+                    loaded_songs = []
+                    for song_data in pl_data["songs"]:
+                        full_song = next((s for s in lib.songs if s.id == song_data['id']), None)
+                        if full_song:
+                            loaded_songs.append(full_song)
                     
-                    if "novelty_adjustment" in modifications:
-                        prefs.novelty_tolerance = max(0, min(1, prefs.novelty_tolerance + modifications["novelty_adjustment"]))
+                    mock_result = {
+                        "query": "Loaded from saved playlist",
+                        "final_playlist": loaded_songs,
+                        "preferences": UserPreferences(
+                            genres=[],
+                            size=len(loaded_songs),
+                            novelty_tolerance=0.5
+                        ),
+                        "session_context": SessionContext(
+                            activity=None,
+                            mood=None,
+                            duration=None
+                        ),
+                        "logs": [],
+                        "explanations": [pl_data.get("description", "")]
+                    }
                     
-                    refined_result = invoke_workflow(
-                        query=result["query"],
-                        user_id="default_user"
-                    )
-                    
-                    st.session_state.last_result = refined_result
-                    
-                    new_title, new_desc = namer_agent(refined_result)
-                    st.session_state.playlist_title = new_title
-                    st.session_state.playlist_desc = new_desc
-                    
-                    response = f"I've adjusted your playlist! {analysis[:200]}"
-                    st.session_state.conversation_history.append({"role": "assistant", "content": response})
-                    
+                    st.session_state.last_result = mock_result
+                    st.session_state.playlist_title = pl_data["title"]
+                    st.session_state.playlist_desc = pl_data.get("description", "")
+                    st.session_state.active_refinement = True
+                    st.session_state.conversation_history = []
+                    st.session_state.original_playlist = loaded_songs.copy()
+                    st.session_state.new_songs = set()
                     st.rerun()
-                else:
-                    response = "I understood your request but couldn't determine specific changes. Try being more specific like 'make it more energetic' or 'add calmer songs'."
-                    st.session_state.conversation_history.append({"role": "assistant", "content": response})
-                    st.rerun()
+    
+    if not st.session_state.get("last_result"):
+        st.info("Create a playlist first, or load a saved one above to refine it!")
+    else:
+        result = st.session_state.last_result
         
-        if st.session_state.get("last_result"):
-            st.markdown("<br><br>", unsafe_allow_html=True)
-            st.markdown("### Current Playlist")
+        col_actions1, col_actions2 = st.columns([1, 1])
+        
+        with col_actions1:
+            if st.button("💾 Save Refined Playlist", use_container_width=True, type="primary"):
+                playlist_title = st.session_state.get("playlist_title", "Refined Playlist")
+                playlist_desc = st.session_state.get("playlist_desc", "")
+                
+                playlist_data = {
+                    "title": playlist_title,
+                    "description": playlist_desc,
+                    "songs": [{
+                        "id": s.id,
+                        "name": s.name,
+                        "artist": s.artist,
+                        "album": s.album,
+                        "year": s.year,
+                        "genres": s.genres
+                    } for s in result["final_playlist"]],
+                    "created_at": pd.Timestamp.now().isoformat()
+                }
+                save_playlist_to_file(playlist_data)
+                st.session_state.saved_playlists = load_saved_playlists()
+                
+                st.session_state.last_result = None
+                st.session_state.conversation_history = []
+                st.session_state.active_refinement = False
+                st.session_state.playlist_title = None
+                st.session_state.playlist_desc = None
+                
+                st.success("✓ Playlist saved!")
+                st.balloons()
+                st.rerun()
+        
+        with col_actions2:
+            if st.button("← Back to Playlist Selection", use_container_width=True):
+                st.session_state.last_result = None
+                st.session_state.conversation_history = []
+                st.session_state.active_refinement = False
+                st.rerun()
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        col_chat, col_playlist = st.columns([1, 1])
+        
+        with col_chat:
+            st.subheader("Conversational Refinement")
+            st.caption("Chat with the system to adjust your playlist")
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            current_size = len(result["final_playlist"])
+            if "original_playlist" not in st.session_state:
+                st.session_state.original_playlist = result["final_playlist"].copy()
+            
+            if "target_size" not in st.session_state:
+                st.session_state.target_size = current_size
+            
+            new_size = st.slider(
+                "Playlist Size",
+                min_value=5,
+                max_value=30,
+                value=st.session_state.target_size,
+                key="playlist_size_slider",
+                help="Adjust the number of songs in your playlist"
+            )
+            
+            if new_size != st.session_state.target_size:
+                st.session_state.target_size = new_size
+            
+            if st.button("Apply Size Change", disabled=(new_size == current_size)):
+                with st.spinner("Adjusting playlist size..."):
+                    if new_size > current_size:
+                        songs_needed = new_size - current_size
+                        
+                        temp_result = invoke_workflow(
+                            query=result["query"],
+                            user_id="default_user",
+                            preferences={
+                                "genres": result["preferences"].genres,
+                                "size": songs_needed + 5,
+                                "novelty_tolerance": result["preferences"].novelty_tolerance
+                            }
+                        )
+                        
+                        current_ids = {s.id for s in result["final_playlist"]}
+                        new_candidates = [s for s in temp_result["final_playlist"] if s.id not in current_ids][:songs_needed]
+                        
+                        combined_playlist = result["final_playlist"] + new_candidates
+                        
+                        result["final_playlist"] = combined_playlist
+                        st.session_state.last_result = result
+                        st.session_state.new_songs = {s.id for s in new_candidates}
+                        st.session_state.target_size = new_size
+                        
+                        new_title, new_desc = namer_agent(result)
+                        st.session_state.playlist_title = new_title
+                        st.session_state.playlist_desc = new_desc
+                    else:
+                        result["final_playlist"] = result["final_playlist"][:new_size]
+                        st.session_state.last_result = result
+                        st.session_state.new_songs = set()
+                        st.session_state.target_size = new_size
+                        
+                        new_title, new_desc = namer_agent(result)
+                        st.session_state.playlist_title = new_title
+                        st.session_state.playlist_desc = new_desc
+                    
+                    st.rerun()
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            if st.session_state.conversation_history:
+                for msg in st.session_state.conversation_history:
+                    if msg["role"] == "user":
+                        st.chat_message("user").write(msg["content"])
+                    else:
+                        st.chat_message("assistant").write(msg["content"])
+        
+            user_input = st.chat_input("Tell me how to adjust the playlist...")
+            
+            if user_input:
+                st.session_state.conversation_history.append({"role": "user", "content": user_input})
+                
+                with st.spinner("Analyzing your request..."):
+                    state, modifications, analysis = refiner_agent(result, user_input)
+                    
+                    if modifications:
+                        prefs_dict = {
+                            "genres": result["preferences"].genres,
+                            "size": result["preferences"].size,
+                            "novelty_tolerance": result["preferences"].novelty_tolerance
+                        }
+                        
+                        if "energy_adjustment" in modifications:
+                            if result["preferences"].energy_range:
+                                new_min = max(0, result["preferences"].energy_range[0] + modifications["energy_adjustment"])
+                                new_max = min(1, result["preferences"].energy_range[1] + modifications["energy_adjustment"])
+                                prefs_dict["energy_range"] = (new_min, new_max)
+                            else:
+                                base = 0.5 + modifications["energy_adjustment"]
+                                prefs_dict["energy_range"] = (max(0, base - 0.2), min(1, base + 0.2))
+                        
+                        if "novelty_adjustment" in modifications:
+                            prefs_dict["novelty_tolerance"] = max(0, min(1, prefs_dict["novelty_tolerance"] + modifications["novelty_adjustment"]))
+                        
+                        refined_result = invoke_workflow(
+                            query=result["query"],
+                            user_id="default_user",
+                            preferences=prefs_dict
+                        )
+                        
+                        original_ids = {s.id for s in st.session_state.original_playlist}
+                        new_songs = {s.id for s in refined_result["final_playlist"] if s.id not in original_ids}
+                        
+                        st.session_state.last_result = refined_result
+                        st.session_state.new_songs = new_songs
+                        
+                        new_title, new_desc = namer_agent(refined_result)
+                        st.session_state.playlist_title = new_title
+                        st.session_state.playlist_desc = new_desc
+                        
+                        response = f"✓ Adjusted! {analysis[:150]}"
+                        st.session_state.conversation_history.append({"role": "assistant", "content": response})
+                        
+                        st.rerun()
+                    else:
+                        response = "I understood your request but couldn't determine specific changes. Try: 'more energetic', 'calmer', 'more variety', 'more familiar'"
+                        st.session_state.conversation_history.append({"role": "assistant", "content": response})
+                        st.rerun()
+        
+        with col_playlist:
+            st.subheader("Current Playlist")
             
             if st.session_state.get("playlist_title"):
                 st.markdown(f"**{st.session_state.playlist_title}**")
                 st.caption(st.session_state.playlist_desc)
             
-            for song in st.session_state.last_result["final_playlist"][:5]:
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            if "new_songs" not in st.session_state:
+                st.session_state.new_songs = set()
+            
+            for idx, song in enumerate(result["final_playlist"]):
+                is_new = song.id in st.session_state.new_songs
                 cover = song.cover_url if hasattr(song, 'cover_url') and song.cover_url else "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop"
+                
                 st.markdown(f"""
-                <div class="song-card">
-                    <img src="{cover}" class="album-cover" alt="{song.album}">
-                    <div class="song-info">
-                        <div class="song-title">{song.name}</div>
-                        <div class="song-artist">{song.artist}</div>
-                        <div class="song-meta">{', '.join(song.genres)} • Energy: {song.energy:.0%}</div>
+                <div style="display: flex; align-items: center; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 6px; border-left: {'3px solid #8b5cf6' if is_new else '3px solid transparent'};">
+                    <img src="{cover}" style="width: 45px; height: 45px; border-radius: 4px; object-fit: cover; margin-right: 12px;" alt="{song.album}">
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-size: 13px; font-weight: 500; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            {song.name} {'✨' if is_new else ''}
+                        </div>
+                        <div style="font-size: 11px; color: rgba(255,255,255,0.6); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            {song.artist}
+                        </div>
+                    </div>
+                    <div style="font-size: 10px; color: rgba(255,255,255,0.4); margin-left: 8px; white-space: nowrap;">
+                        {', '.join(song.genres[:1])}
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
-            
-            if len(st.session_state.last_result["final_playlist"]) > 5:
-                st.caption(f"+ {len(st.session_state.last_result['final_playlist']) - 5} more songs")
 
 with tab4:
     st.markdown("<br>", unsafe_allow_html=True)

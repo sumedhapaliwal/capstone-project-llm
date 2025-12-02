@@ -1,0 +1,194 @@
+{
+  "active_variants": {
+    "orchestrator": "v1_concise",
+    "explainer": "v1_storytelling",
+    "refiner": "v1_analytical",
+    "namer": "v1_creative"
+  },
+  "prompts": {
+    "orchestrator": {
+      "v1_concise": {
+        "version": "v1_concise",
+        "template": "Parse this music query into structured intent:\nQuery: {query}\n\nExtract:\n- Intent: (recommend/search/playlist_create)\n- Genres: List any mentioned\n- Mood: Overall emotional tone\n- Activity: Context (workout/study/party/etc)\n- Energy: (low/medium/high)\n\nRespond in JSON format.",
+        "variables": [
+          "query"
+        ],
+        "metadata": {
+          "style": "concise",
+          "tokens": "~150"
+        },
+        "created_at": "2025-12-02T21:39:28.014278",
+        "usage_count": 0,
+        "success_rate": 0.0,
+        "avg_tokens": 0
+      },
+      "v2_detailed": {
+        "version": "v2_detailed",
+        "template": "You are a music intent analyzer. Parse the user's natural language query into structured data.\n\nUser Query: \"{query}\"\n\nAnalyze and extract:\n1. Primary Intent: What does the user want? (recommend, search, create playlist, expand playlist)\n2. Genre Preferences: Any specific genres mentioned or implied\n3. Mood/Emotion: What emotional state or vibe is requested\n4. Activity Context: What activity is this for (if any)\n5. Energy Level: Desired intensity (calm/moderate/energetic)\n6. Special Requests: Any unique requirements (discover new artists, familiar songs only, etc)\n\nProvide a detailed JSON response with all extracted information.",
+        "variables": [
+          "query"
+        ],
+        "metadata": {
+          "style": "detailed",
+          "tokens": "~300"
+        },
+        "created_at": "2025-12-02T21:39:28.017975",
+        "usage_count": 0,
+        "success_rate": 0.0,
+        "avg_tokens": 0
+      },
+      "v3_conversational": {
+        "version": "v3_conversational",
+        "template": "Hey! Let's understand what you're looking for.\n\nYou said: \"{query}\"\n\nI need to figure out:\n- What you want to do (discover songs? build a playlist?)\n- What genres you're into\n- The vibe you're going for\n- Any specific activity this is for\n\nGive me the details in JSON so I can hook you up with the perfect music.",
+        "variables": [
+          "query"
+        ],
+        "metadata": {
+          "style": "conversational",
+          "tokens": "~200"
+        },
+        "created_at": "2025-12-02T21:39:28.023119",
+        "usage_count": 0,
+        "success_rate": 0.0,
+        "avg_tokens": 0
+      }
+    },
+    "explainer": {
+      "v1_storytelling": {
+        "version": "v1_storytelling",
+        "template": "Create a compelling story about this playlist:\n\nUser Query: {query}\nSongs: {songs}\nUser Preferences: {preferences}\n\nWrite a narrative that:\n1. Connects songs to the user's original request\n2. Explains the emotional journey through the playlist\n3. Highlights 2-3 standout tracks and why they fit\n4. Makes the user excited to listen\n\nKeep it under 150 words.",
+        "variables": [
+          "query",
+          "songs",
+          "preferences"
+        ],
+        "metadata": {
+          "style": "storytelling",
+          "max_words": 150
+        },
+        "created_at": "2025-12-02T21:39:28.026732",
+        "usage_count": 0,
+        "success_rate": 0.0,
+        "avg_tokens": 0
+      },
+      "v2_technical": {
+        "version": "v2_technical",
+        "template": "Generate a technical explanation for this playlist recommendation:\n\nQuery: {query}\nSelected Songs: {songs}\nUser Profile: {preferences}\n\nExplain:\n- Why each song was selected (genre match, energy level, mood)\n- How the playlist balances familiarity vs discovery\n- Statistical breakdown (avg energy, genre distribution)\n- Reasoning behind song ordering\n\nBe precise and data-driven.",
+        "variables": [
+          "query",
+          "songs",
+          "preferences"
+        ],
+        "metadata": {
+          "style": "technical"
+        },
+        "created_at": "2025-12-02T21:39:28.030026",
+        "usage_count": 0,
+        "success_rate": 0.0,
+        "avg_tokens": 0
+      },
+      "v3_casual": {
+        "version": "v3_casual",
+        "template": "Yo! Here's why this playlist is perfect for you:\n\nYou wanted: {query}\nI picked: {songs}\nBased on: {preferences}\n\nQuick breakdown of why these songs slap and how they match your vibe. Keep it real and fun.",
+        "variables": [
+          "query",
+          "songs",
+          "preferences"
+        ],
+        "metadata": {
+          "style": "casual"
+        },
+        "created_at": "2025-12-02T21:39:28.032997",
+        "usage_count": 0,
+        "success_rate": 0.0,
+        "avg_tokens": 0
+      }
+    },
+    "refiner": {
+      "v1_analytical": {
+        "version": "v1_analytical",
+        "template": "Analyze this playlist refinement request:\n\nOriginal Query: {original_query}\nCurrent Playlist: {current_songs}\nUser Feedback: {feedback}\nUser Preferences: {preferences}\n\nDetermine:\n1. What aspects to change (energy, genre, mood, artists)\n2. Which songs to remove (if any)\n3. What characteristics to emphasize\n4. Specific adjustments (numeric ranges for energy, valence, etc)\n\nReturn structured modifications in JSON.",
+        "variables": [
+          "original_query",
+          "current_songs",
+          "feedback",
+          "preferences"
+        ],
+        "metadata": {
+          "style": "analytical"
+        },
+        "created_at": "2025-12-02T21:39:28.036362",
+        "usage_count": 0,
+        "success_rate": 0.0,
+        "avg_tokens": 0
+      },
+      "v2_conversational": {
+        "version": "v2_conversational",
+        "template": "User wants to adjust their playlist. Let's figure out what they mean:\n\nThey originally asked for: \"{original_query}\"\nCurrent playlist has: {current_songs}\nNow they're saying: \"{feedback}\"\n\nWhat do they actually want changed? Break it down:\n- Remove songs? Which type?\n- Add more of something? What specifically?\n- Change the overall vibe? How?\n\nGive me actionable changes.",
+        "variables": [
+          "original_query",
+          "current_songs",
+          "feedback",
+          "preferences"
+        ],
+        "metadata": {
+          "style": "conversational"
+        },
+        "created_at": "2025-12-02T21:39:28.039282",
+        "usage_count": 0,
+        "success_rate": 0.0,
+        "avg_tokens": 0
+      }
+    },
+    "namer": {
+      "v1_creative": {
+        "version": "v1_creative",
+        "template": "Create an awesome playlist title and description:\n\nSongs: {songs}\nOriginal Query: {query}\nVibe: {mood}\n\nGenerate:\n- A catchy, creative title (3-6 words)\n- A one-sentence description that captures the essence\n- Make it memorable and shareable\n\nExamples:\n- \"Midnight Study Vibes: Lo-Fi Beats for Deep Focus\"\n- \"Thunder & Lightning: High-Octane Workout Anthems\"\n- \"Sunset Boulevard: Indie Gems for Golden Hour\"\n\nYour turn!",
+        "variables": [
+          "songs",
+          "query",
+          "mood"
+        ],
+        "metadata": {
+          "style": "creative"
+        },
+        "created_at": "2025-12-02T21:39:28.042716",
+        "usage_count": 0,
+        "success_rate": 0.0,
+        "avg_tokens": 0
+      },
+      "v2_minimal": {
+        "version": "v2_minimal",
+        "template": "Name this playlist:\n\nSongs: {songs}\nQuery: {query}\n\nTitle (3-5 words):\nDescription (1 sentence):\n\nKeep it simple and clear.",
+        "variables": [
+          "songs",
+          "query",
+          "mood"
+        ],
+        "metadata": {
+          "style": "minimal"
+        },
+        "created_at": "2025-12-02T21:39:28.045776",
+        "usage_count": 0,
+        "success_rate": 0.0,
+        "avg_tokens": 0
+      },
+      "v3_poetic": {
+        "version": "v3_poetic",
+        "template": "Craft a poetic playlist name:\n\nFor these songs: {songs}\nInspired by: {query}\nEmotion: {mood}\n\nCreate a title that:\n- Evokes imagery and emotion\n- Uses metaphor or wordplay\n- Feels like art\n\nThen write a lyrical description that makes people want to press play.",
+        "variables": [
+          "songs",
+          "query",
+          "mood"
+        ],
+        "metadata": {
+          "style": "poetic"
+        },
+        "created_at": "2025-12-02T21:39:28.049482",
+        "usage_count": 0,
+        "success_rate": 0.0,
+        "avg_tokens": 0
+      }
+    }
+  }
+}

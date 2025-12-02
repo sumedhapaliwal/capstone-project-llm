@@ -7,5 +7,5 @@ An LLM Based Agentic System for Personalized Music Playlist Creation
 - [x] Break down the process of profiling into agentic behaviour specializing respectively in *existing taste, exploration and provided rules*
 - [x] Expand the database and populate user profile diversily and have multiple prompts tested to check which works better for agents
 - [x] Conversational playlist refiner.
-- [ ] Fix bugs in prompt manager and playlist refiner
-- [ ] Create video
+- [x] Fix bugs in prompt manager and playlist refiner
+- [x] Create video

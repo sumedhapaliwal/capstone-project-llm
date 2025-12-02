@@ -24,7 +24,8 @@
     "s73",
     "s75",
     "s76",
-    "s80"
+    "s80",
+    "s1"
   ],
   "disliked_songs": [
     "s71",
@@ -47,7 +48,8 @@
     "r&b",
     "hip hop",
     "soul",
-    "pop"
+    "pop",
+    "synthwave"
   ],
   "preferred_moods": [
     "edgy",
@@ -57,7 +59,8 @@
     "happy",
     "chill",
     "confident",
-    "dramatic"
+    "dramatic",
+    "energetic"
   ],
   "preferred_artists": [
     "Billie Eilish",
@@ -79,6 +82,7 @@
     "The White Stripes",
     "Pearl Jam",
     "Nirvana",
-    "Evanescence"
+    "Evanescence",
+    "The Weeknd"
   ]
 }
